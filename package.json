@@ -1,10 +1,12 @@
+
 {
   "name": "naki-meishun",
   "version": "1.0.0",
   "description": "מרכז ידע וקהילה נקי מעישון",
   "scripts": {
     "start": "npx serve .",
-    "dev": "npx serve ."
+    "dev": "npx serve .",
+    "build": "echo 'No build step required for static deployment'"
   },
   "dependencies": {
     "react": "^19.0.0",
