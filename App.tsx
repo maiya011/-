@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Home } from './components/Home.tsx';
 import { Forum } from './components/Forum.tsx';
@@ -5,11 +6,10 @@ import { Articles } from './components/Articles.tsx';
 import { About } from './components/About.tsx';
 import { Auth } from './components/Auth.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
-import { Shop } from './components/Shop.tsx';
 import { Navigation } from './components/Navigation.tsx';
 import { Footer } from './components/Footer.tsx';
 
-type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'shop';
+type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -20,7 +20,6 @@ const App: React.FC = () => {
       case 'home': return <Home onNavigate={setCurrentPage} />;
       case 'about': return <About />;
       case 'articles': return <Articles />;
-      case 'shop': return <Shop />;
       case 'forum': return <Forum user={user} onAuthClick={() => setCurrentPage('auth')} />;
       case 'auth': return <Auth onLogin={(u) => { setUser(u); setCurrentPage('home'); }} />;
       case 'admin': return user?.role === 'admin' ? <AdminDashboard /> : <Home onNavigate={setCurrentPage} />;

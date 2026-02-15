@@ -1,3 +1,4 @@
+
 import React from 'react';
 
 interface Props {
@@ -13,7 +14,6 @@ export const Navigation: React.FC<Props> = ({ currentPage, onNavigate, user, onL
     { id: 'about', label: 'הסיפור שלי' },
     { id: 'articles', label: 'מאמרים ומחקר' },
     { id: 'forum', label: 'פורום קהילה' },
-    { id: 'shop', label: 'חנות' },
   ];
 
   return (
