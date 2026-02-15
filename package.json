@@ -1,15 +1,23 @@
 
 {
   "name": "naki-meishun",
+  "private": true,
   "version": "1.0.0",
-  "description": "מרכז ידע וקהילה נקי מעישון",
+  "type": "module",
   "scripts": {
-    "start": "npx serve .",
-    "dev": "npx serve .",
-    "build": "mkdir -p build && cp index.html index.tsx index.css metadata.json .htaccess build/ && cp -r components build/"
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview"
   },
   "dependencies": {
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "@vitejs/plugin-react": "^4.3.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5"
   }
 }

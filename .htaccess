@@ -1,26 +1,16 @@
 
-# הגדרת סוגי קבצים - חובה בהוסטינגר
-<IfModule mod_mime.c>
-  AddType application/javascript .js
-  AddType application/javascript .ts
-  AddType application/javascript .tsx
-  AddType text/css .css
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
+  
+  # כפיית HTTPS
+  RewriteCond %{HTTPS} off
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
+
+  # אם הקובץ קיים פיזית, הגש אותו
+  RewriteCond %{REQUEST_FILENAME} -f
+  RewriteRule ^ - [L]
+
+  # אחרת, הפנה הכל ל-index.html (עבור React Router)
+  RewriteRule ^ index.html [L]
 </IfModule>
-
-RewriteEngine On
-RewriteBase /
-
-# כפיית HTTPS
-RewriteCond %{HTTPS} off
-RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
-
-# אם הקובץ קיים - תן אותו
-RewriteCond %{REQUEST_FILENAME} -f
-RewriteRule ^ - [L]
-
-# אם קובץ קוד חסר - אל תפנה ל-index.html (זה מונע את שגיאת ה- <)
-RewriteCond %{REQUEST_URI} \.(js|css|tsx|ts|png|jpg|jpeg|gif|svg|ico|json)$ [NC]
-RewriteRule ^ - [R=404,L]
-
-# ניתוב SPA
-RewriteRule . /index.html [L]
