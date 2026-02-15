@@ -6,7 +6,7 @@
   "scripts": {
     "start": "npx serve .",
     "dev": "npx serve .",
-    "build": "echo 'No build step required for static deployment'"
+    "build": "mkdir -p build && cp index.html index.tsx index.css metadata.json .htaccess build/ && cp -r components build/"
   },
   "dependencies": {
     "react": "^19.0.0",
