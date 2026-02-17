@@ -18,7 +18,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 function getDB() {
-    // פרטי התחברות
+    // פרטי התחברות - וודא שהם תואמים ב-100% למה שמופיע ב-Hostinger hPanel
     $host = 'localhost'; 
     $db   = 'u371052356_ffs'; 
     $user = 'u371052356_ffs';       
@@ -35,11 +35,11 @@ function getDB() {
         ]);
     } catch (\PDOException $e) {
         http_response_code(500);
-        // אנחנו מחזירים את השגיאה המדויקת מהשרת כדי להבין מה הבעיה
         echo json_encode([
             'error' => 'Database connection failed',
             'details' => $e->getMessage(),
-            'hint' => 'Check if the DB user has permissions to the database in Hostinger hPanel.'
+            'server_user' => $user,
+            'hint' => 'Check if password is correct and if user is assigned to the DB in Hostinger Panel.'
         ]);
         exit;
     }
@@ -47,8 +47,6 @@ function getDB() {
 
 try {
     $action = $_GET['action'] ?? '';
-    
-    // בכל פעולה פרט ל-ping אנחנו נדרשים ל-DB
     $db = getDB();
 
     $rawInput = file_get_contents('php://input');
@@ -77,7 +75,7 @@ try {
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, role_id) VALUES (?, ?, ?, 2)");
             $stmt->execute([$username, $email, $hash]);
-            echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
+            echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
             break;
 
         case 'login':
@@ -115,9 +113,23 @@ try {
             echo json_encode($stmt->fetchAll());
             break;
 
+        case 'create_post':
+            $userId = (int)($input['user_id'] ?? 0);
+            $title = trim($input['title'] ?? '');
+            $content = trim($input['content'] ?? '');
+
+            if (!$userId || !$title || !$content) {
+                throw new Exception('נתונים חסרים ליצירת פוסט', 400);
+            }
+
+            $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content) VALUES (?, ?, ?)");
+            $stmt->execute([$userId, $title, $content]);
+            echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
+            break;
+
         default:
             http_response_code(404);
-            echo json_encode(['error' => 'Action not found']);
+            echo json_encode(['error' => 'Action not found: ' . $action]);
             break;
     }
 } catch (Exception $e) {
