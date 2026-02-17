@@ -1,13 +1,13 @@
 <?php
 /**
  * Core Backend API - Naki Meishun
- * התאמה מלאה לשרתי Hostinger - מחובר למסד נתונים פעיל
  */
 
-// הגדרות אבטחה ודיווח שגיאות
-ini_set('display_errors', 0); // כבוי בייצור למען אבטחה
+// מניעת פליטת שגיאות כ-HTML ששובר את ה-JSON
+ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
+// הגדרת Header של JSON מיד בהתחלה
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -17,9 +17,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
     exit;
 }
 
-/**
- * פונקציית התחברות למסד הנתונים
- */
 function getDB() {
     $host = 'localhost'; 
     $db   = 'u371052356_ffs'; 
@@ -38,43 +35,22 @@ function getDB() {
         http_response_code(500);
         echo json_encode([
             'error' => 'Database connection failed',
-            'message' => 'חלה שגיאה בחיבור למסד הנתונים. וודא שהפרטים ב-hPanel תואמים.'
+            'details' => $e->getMessage()
         ]);
         exit;
     }
 }
 
-$action = $_GET['action'] ?? '';
-$db = getDB();
-
-$rawInput = file_get_contents('php://input');
-$input = json_decode($rawInput, true);
-
 try {
+    $action = $_GET['action'] ?? '';
+    $db = getDB();
+
+    $rawInput = file_get_contents('php://input');
+    $input = json_decode($rawInput, true);
+
     switch ($action) {
         case 'ping':
-            // בדיקת תקינות מהירה
-            echo json_encode([
-                'status' => 'online', 
-                'database' => 'connected',
-                'server_time' => date('Y-m-d H:i:s')
-            ]);
-            break;
-
-        case 'get_articles':
-            $search = $_GET['search'] ?? '';
-            if ($search) {
-                $stmt = $db->prepare("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
-                $stmt->execute(["%$search%", "%$search%"]);
-            } else {
-                $stmt = $db->query("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' ORDER BY created_at DESC");
-            }
-            echo json_encode($stmt->fetchAll());
-            break;
-
-        case 'get_forum_posts':
-            $stmt = $db->query("SELECT p.id, p.title, p.content, p.created_at as date, u.username as author FROM forum_posts p JOIN users u ON p.user_id = u.id WHERE p.deleted_at IS NULL ORDER BY p.created_at DESC");
-            echo json_encode($stmt->fetchAll());
+            echo json_encode(['status' => 'online', 'database' => 'connected']);
             break;
 
         case 'register':
@@ -83,14 +59,13 @@ try {
             $password = $input['password'] ?? '';
             
             if (!$username || !$email || strlen($password) < 6) {
-                throw new Exception('נתונים לא תקינים או סיסמה קצרה מדי (מינימום 6 תווים)', 400);
+                throw new Exception('נתונים חסרים או סיסמה קצרה מדי', 400);
             }
 
-            // בדיקה אם המשתמש כבר קיים
             $check = $db->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
             $check->execute([$email, $username]);
             if ($check->fetch()) {
-                throw new Exception('שם המשתמש או האימייל כבר קיימים במערכת', 400);
+                throw new Exception('המשתמש או האימייל כבר קיימים', 400);
             }
 
             $hash = password_hash($password, PASSWORD_DEFAULT);
@@ -114,22 +89,24 @@ try {
                     'role' => (int)$user['role_id'] === 1 ? 'admin' : 'user'
                 ]);
             } else {
-                throw new Exception('אימייל או סיסמה אינם נכונים', 401);
+                throw new Exception('אימייל או סיסמה שגויים', 401);
             }
             break;
 
-        case 'create_post':
-            $userId = (int)($input['user_id'] ?? 0);
-            $title = trim($input['title'] ?? '');
-            $content = trim($input['content'] ?? '');
-            
-            if ($userId > 0 && $title && $content) {
-                $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content) VALUES (?, ?, ?)");
-                $stmt->execute([$userId, $title, $content]);
-                echo json_encode(['success' => true]);
+        case 'get_articles':
+            $search = $_GET['search'] ?? '';
+            if ($search) {
+                $stmt = $db->prepare("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
+                $stmt->execute(["%$search%", "%$search%"]);
             } else {
-                throw new Exception('נא למלא כותרת ותוכן', 400);
+                $stmt = $db->query("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' ORDER BY created_at DESC");
             }
+            echo json_encode($stmt->fetchAll());
+            break;
+
+        case 'get_forum_posts':
+            $stmt = $db->query("SELECT p.id, p.title, p.content, p.created_at as date, u.username as author FROM forum_posts p JOIN users u ON p.user_id = u.id WHERE p.deleted_at IS NULL ORDER BY p.created_at DESC");
+            echo json_encode($stmt->fetchAll());
             break;
 
         default:
@@ -138,7 +115,7 @@ try {
             break;
     }
 } catch (Exception $e) {
-    http_response_code($e->getCode() ?: 500);
+    http_response_code($e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500);
     echo json_encode(['error' => $e->getMessage()]);
 }
 ?>

@@ -1,4 +1,3 @@
-
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -7,10 +6,14 @@
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # אם הקובץ קיים פיזית, הגש אותו
+  # אל תבצע ניתוב מחדש אם הקובץ קיים פיזית (זה קריטי עבור backend_core.php)
   RewriteCond %{REQUEST_FILENAME} -f
   RewriteRule ^ - [L]
 
-  # אחרת, הפנה הכל ל-index.html (עבור React Router)
+  # אל תבצע ניתוב מחדש עבור קבצי ה-API
+  RewriteCond %{REQUEST_URI} ^/backend_core\.php [NC]
+  RewriteRule ^ - [L]
+
+  # הפנה את כל השאר ל-index.html (עבור React Router)
   RewriteRule ^ index.html [L]
 </IfModule>
