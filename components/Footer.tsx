@@ -24,19 +24,20 @@ export const Footer: React.FC<Props> = ({ onNavigate }) => {
         <div>
           <h4 className="font-bold text-white mb-6">ניווט מהיר</h4>
           <ul className="space-y-4">
-            <li><button onClick={() => onNavigate('home')} className="hover:text-yellow-300">דף הבית</button></li>
-            <li><button onClick={() => onNavigate('tips')} className="hover:text-yellow-300">טיפים לגמילה</button></li>
-            <li><button onClick={() => onNavigate('articles')} className="hover:text-yellow-300">מאמרים ומחקרים</button></li>
-            <li><button onClick={() => onNavigate('forum')} className="hover:text-yellow-300">פורום תמיכה</button></li>
+            <li><button onClick={() => onNavigate('home')} className="hover:text-yellow-300 transition-colors">דף הבית</button></li>
+            <li><button onClick={() => onNavigate('tips')} className="hover:text-yellow-300 transition-colors">טיפים לגמילה</button></li>
+            <li><button onClick={() => onNavigate('articles')} className="hover:text-yellow-300 transition-colors">מאמרים ומחקרים</button></li>
+            <li><button onClick={() => onNavigate('forum')} className="hover:text-yellow-300 transition-colors">פורום תמיכה</button></li>
+            <li><button onClick={() => onNavigate('contact')} className="hover:text-yellow-300 transition-colors">צרו קשר</button></li>
           </ul>
         </div>
 
         <div>
           <h4 className="font-bold text-white mb-6">משפטי</h4>
           <ul className="space-y-4">
-             <li><button className="hover:text-yellow-300 text-sm">תנאי שימוש</button></li>
-             <li><button className="hover:text-yellow-300 text-sm">מדיניות פרטיות</button></li>
-             <li><button className="hover:text-yellow-300 text-sm">צרו קשר</button></li>
+             <li><button className="hover:text-yellow-300 text-sm transition-colors">תנאי שימוש</button></li>
+             <li><button className="hover:text-yellow-300 text-sm transition-colors">מדיניות פרטיות</button></li>
+             <li><button onClick={() => onNavigate('about')} className="hover:text-yellow-300 text-sm transition-colors">אודות המרכז</button></li>
           </ul>
         </div>
       </div>

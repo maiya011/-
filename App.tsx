@@ -11,8 +11,9 @@ import { Footer } from './components/Footer.tsx';
 import { CookieBanner } from './components/CookieBanner.tsx';
 import { CalculatorPage } from './components/CalculatorPage.tsx';
 import { Tips } from './components/Tips.tsx';
+import { Contact } from './components/Contact.tsx';
 
-type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'calculator' | 'tips';
+type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'calculator' | 'tips' | 'contact';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -24,6 +25,7 @@ const App: React.FC = () => {
       case 'about': return <About />;
       case 'articles': return <Articles />;
       case 'tips': return <Tips />;
+      case 'contact': return <Contact />;
       case 'calculator': return <CalculatorPage onNavigate={setCurrentPage} />;
       case 'forum': return <Forum user={user} onAuthClick={() => setCurrentPage('auth')} />;
       case 'auth': return <Auth onLogin={(u) => { setUser(u); setCurrentPage('home'); }} />;

@@ -12,9 +12,8 @@ export const Navigation: React.FC<Props> = ({ currentPage, onNavigate, user, onL
   const navItems = [
     { id: 'home', label: 'דף הבית' },
     { id: 'tips', label: 'טיפים לגמילה' },
-    { id: 'articles', label: 'מאמרים ומחקר' },
+    { id: 'articles', label: 'מאמרים' },
     { id: 'forum', label: 'פורום קהילה' },
-    { id: 'about', label: 'הסיפור שלי' },
   ];
 
   return (

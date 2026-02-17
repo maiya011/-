@@ -32,7 +32,7 @@ export const Tips: React.FC = () => {
         </div>
         <button 
           onClick={handlePrint}
-          className="bg-white border-2 border-sky-100 text-sky-600 px-6 py-3 rounded-2xl font-black hover:bg-sky-50 transition-all flex items-center gap-2 shadow-sm"
+          className="bg-sky-50 border-2 border-sky-100 text-sky-600 px-6 py-3 rounded-2xl font-black hover:bg-sky-100 transition-all flex items-center gap-2 shadow-sm"
         >
           <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" /></svg>
           גרסה להדפסה
@@ -42,8 +42,8 @@ export const Tips: React.FC = () => {
       <div className="grid gap-10">
         {/* Section 1: Before Quitting */}
         <section className="bg-white rounded-[3rem] shadow-xl border border-sky-50 overflow-hidden">
-          <div className="bg-sky-600 p-8 text-white">
-            <h2 className="text-2xl font-black flex items-center gap-3">
+          <div className="bg-sky-400 p-8 text-white shadow-inner">
+            <h2 className="text-2xl font-black flex items-center gap-3 drop-shadow-sm">
               <span className="bg-white/20 p-2 rounded-xl">1</span>
               לפני הפסקת העישון: הכנה מנטלית
             </h2>
@@ -51,11 +51,11 @@ export const Tips: React.FC = () => {
           <div className="p-8 md:p-12">
             <p className="text-slate-700 text-lg font-bold mb-8">הקדשת מחשבה מקדימה היא המפתח ליציבות. שאלו את עצמכם:</p>
             <div className="grid md:grid-cols-2 gap-6">
-              <div className="bg-sky-50 p-6 rounded-3xl border border-sky-100">
+              <div className="bg-sky-50/50 p-6 rounded-3xl border border-sky-100">
                 <h3 className="font-black text-sky-900 mb-2">למה אני רוצה להפסיק?</h3>
                 <p className="text-slate-600 text-sm leading-relaxed">כתבו את כל הסיבות ברשימה ושמרו אותה קרוב אליכם (בארנק או בטלפון).</p>
               </div>
-              <div className="bg-sky-50 p-6 rounded-3xl border border-sky-100">
+              <div className="bg-sky-50/50 p-6 rounded-3xl border border-sky-100">
                 <h3 className="font-black text-sky-900 mb-2">מהם הטריגרים שלי?</h3>
                 <p className="text-slate-600 text-sm leading-relaxed">חשבו על ההרגלים: מתי אתם מעשנים? היכן? מהן התחושות שגורמות לכם לרצות סיגריה?</p>
               </div>
@@ -71,7 +71,7 @@ export const Tips: React.FC = () => {
                 'טקס פרידה: עשנו את הסיגריה האחרונה במודעות מלאה, ואז צאו לטיול או נקו שיניים.'
               ].map((item, i) => (
                 <div key={i} className="flex items-start gap-4 p-4 hover:bg-slate-50 rounded-2xl transition-colors border-r-4 border-sky-400">
-                  <span className="text-sky-500 mt-1">
+                  <span className="text-sky-400 mt-1">
                     <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20"><path fillRule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-8 8a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L8 12.586l7.293-7.293a1 1 0 011.414 0z" clipRule="evenodd" /></svg>
                   </span>
                   <span className="font-medium text-slate-700">{item}</span>
@@ -188,7 +188,7 @@ export const Tips: React.FC = () => {
           body { background: white; color: black; }
           .max-w-5xl { max-width: 100%; margin: 0; padding: 0; }
           section { border: 1px solid #eee; margin-bottom: 20px; page-break-inside: avoid; }
-          .bg-sky-600, .bg-yellow-500, .bg-emerald-600, .bg-sky-950 { background: #f8fafc !important; color: black !important; border-bottom: 2px solid #000 !important; }
+          .bg-sky-400, .bg-yellow-500, .bg-emerald-600, .bg-sky-950 { background: #f8fafc !important; color: black !important; border-bottom: 2px solid #000 !important; }
           .text-white { color: black !important; }
           .bg-slate-900 { background: white !important; color: black !important; border: 2px solid #000; }
           .text-sky-400 { color: #0284c7 !important; font-weight: bold; }

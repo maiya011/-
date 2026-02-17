@@ -174,8 +174,8 @@ export const CalculatorPage: React.FC<Props> = ({ onNavigate }) => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <button 
-                onClick={() => onNavigate('articles')}
-                className="bg-sky-500 hover:bg-sky-400 text-white px-8 py-4 rounded-2xl font-black text-lg shadow-xl shadow-sky-500/20 transition-all active:scale-95 border-2 border-sky-400"
+                onClick={() => onNavigate('tips')}
+                className="bg-sky-400 hover:bg-sky-300 text-white px-8 py-4 rounded-2xl font-black text-lg shadow-xl shadow-sky-400/20 transition-all active:scale-95 border-2 border-sky-300 drop-shadow-sm"
               >
                 איך מתחילים גמילה?
               </button>
