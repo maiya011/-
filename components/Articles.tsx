@@ -119,12 +119,12 @@ export const Articles: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-12 animate-fade-in-up">
+      <div className="mb-12 reveal">
         <h1 className="text-4xl font-black text-slate-800 mb-4">ספריית מחקרים וסיכומי ידע</h1>
         <p className="text-lg text-slate-600 max-w-3xl font-medium">ריכוז המחקרים הבינלאומיים העדכניים ביותר בתחום העישון, הגמילה והפחתת הנזק. כל המידע מוגש בעברית נגישה לטובת הציבור.</p>
       </div>
       
-      <div className="flex flex-wrap gap-3 mb-12 animate-fade-in delay-100">
+      <div className="flex flex-wrap gap-3 mb-12 reveal reveal-delay-100">
         {CATEGORIES.map((cat, idx) => (
           <button
             key={cat}
@@ -142,8 +142,8 @@ export const Articles: React.FC = () => {
         {filtered.map((article, idx) => (
           <div 
             key={article.id} 
-            className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all flex flex-col group animate-fade-in-up"
-            style={{ animationDelay: `${(idx + 1) * 100}ms` }}
+            className="bg-white rounded-[2rem] overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-2 transition-all flex flex-col group reveal"
+            style={{ transitionDelay: `${(idx % 3) * 100}ms` }}
           >
             <div className="h-2 bg-emerald-500 w-0 group-hover:w-full transition-all duration-700"></div>
             <div className="p-8 flex-grow flex flex-col">
@@ -170,7 +170,7 @@ export const Articles: React.FC = () => {
         ))}
       </div>
       
-      <div className="mt-20 bg-emerald-950 text-white p-12 rounded-[3rem] relative overflow-hidden shadow-2xl animate-fade-in delay-500">
+      <div className="mt-20 bg-emerald-950 text-white p-12 rounded-[3rem] relative overflow-hidden shadow-2xl reveal">
         <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_30%_30%,_rgba(16,185,129,0.1),_transparent)] pointer-events-none"></div>
         <div className="relative z-10 grid md:grid-cols-2 gap-12 items-center">
           <div>
@@ -181,7 +181,7 @@ export const Articles: React.FC = () => {
               <div className="bg-emerald-800/50 backdrop-blur-md px-6 py-3 rounded-2xl text-sm font-black border border-emerald-700/50">עדכון שבועי</div>
             </div>
           </div>
-          <div className="bg-white/5 backdrop-blur-lg p-10 rounded-[2rem] border border-white/10 shadow-inner">
+          <div className="bg-white/5 backdrop-blur-lg p-10 rounded-[2rem] border border-white/10 shadow-inner reveal reveal-delay-200">
             <h3 className="font-black text-2xl mb-4 text-emerald-400">הצהרת שקיפות</h3>
             <p className="text-base text-emerald-100/80 italic font-medium leading-relaxed">"כל הסיכומים באתר נערכו על ידי מתנדבים ואינם מהווים תחליף לייעוץ רפואי אישי. אנחנו מעודדים אתכם לגשת למקורות המקוריים המקושרים בכל מאמר."</p>
           </div>

@@ -27,7 +27,7 @@ const SmokingCalculator: React.FC = () => {
   }, [cigsPerDay, pricePerPack]);
 
   return (
-    <div className="max-w-5xl mx-auto mb-20 px-4 relative z-30 animate-fade-in-up">
+    <div className="max-w-5xl mx-auto mb-20 px-4 relative z-30 reveal">
       <div className="bg-white/95 backdrop-blur-md rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.08)] border border-sky-100 p-8 md:p-12 overflow-hidden relative">
         <div className="absolute top-0 right-0 w-64 h-64 bg-yellow-50 rounded-bl-full -z-10 opacity-40"></div>
         
@@ -231,21 +231,21 @@ export const Home: React.FC<Props> = ({ onNavigate }) => {
       {/* Features & Research Sections */}
       <section className="py-24 bg-white">
         <div className="max-w-7xl mx-auto px-4 grid md:grid-cols-3 gap-10">
-          <div className="text-center p-10 rounded-[2.5rem] bg-sky-50/50 border border-sky-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer" onClick={() => onNavigate('articles')}>
+          <div className="text-center p-10 rounded-[2.5rem] bg-sky-50/50 border border-sky-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer reveal" onClick={() => onNavigate('articles')}>
             <div className="w-20 h-20 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" /></svg>
             </div>
             <h3 className="text-2xl font-black text-sky-950 mb-4">מחקרים מתורגמים</h3>
             <p className="text-slate-500 font-medium">סיכומי מחקרים מובילים מהעולם, מתורגמים לעברית פשוטה.</p>
           </div>
-          <div className="text-center p-10 rounded-[2.5rem] bg-yellow-50/50 border border-yellow-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer" onClick={() => onNavigate('forum')}>
+          <div className="text-center p-10 rounded-[2.5rem] bg-yellow-50/50 border border-yellow-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer reveal reveal-delay-100" onClick={() => onNavigate('forum')}>
             <div className="w-20 h-20 bg-yellow-100 text-yellow-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" /></svg>
             </div>
             <h3 className="text-2xl font-black text-sky-950 mb-4">קהילה תומכת</h3>
             <p className="text-slate-500 font-medium">מרחב בטוח לשיתוף חוויות ותמיכה הדדית בדרך לחופש.</p>
           </div>
-          <div className="text-center p-10 rounded-[2.5rem] bg-sky-50/50 border border-sky-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer" onClick={() => onNavigate('about')}>
+          <div className="text-center p-10 rounded-[2.5rem] bg-sky-50/50 border border-sky-50 hover:bg-white hover:shadow-2xl transition-all cursor-pointer reveal reveal-delay-200" onClick={() => onNavigate('about')}>
             <div className="w-20 h-20 bg-sky-100 text-sky-600 rounded-3xl flex items-center justify-center mx-auto mb-8">
               <svg className="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             </div>
@@ -256,7 +256,7 @@ export const Home: React.FC<Props> = ({ onNavigate }) => {
       </section>
 
       {/* Latest Research Section */}
-      <section className="py-24 bg-sky-50/30">
+      <section className="py-24 bg-sky-50/30 reveal">
         <div className="max-w-7xl mx-auto px-4">
           <div className="flex flex-col md:flex-row justify-between items-end mb-16">
             <h2 className="text-4xl md:text-5xl font-black text-sky-950">מחקרים אחרונים מהמרכז</h2>
@@ -267,8 +267,8 @@ export const Home: React.FC<Props> = ({ onNavigate }) => {
           </div>
 
           <div className="grid md:grid-cols-3 gap-8">
-            {featuredResearch.map((item) => (
-              <div key={item.id} onClick={() => onNavigate('articles')} className="bg-white p-10 rounded-[2.5rem] shadow-sm border border-sky-50 hover:shadow-2xl transition-all cursor-pointer">
+            {featuredResearch.map((item, idx) => (
+              <div key={item.id} onClick={() => onNavigate('articles')} className={`bg-white p-10 rounded-[2.5rem] shadow-sm border border-sky-50 hover:shadow-2xl transition-all cursor-pointer reveal reveal-delay-${(idx + 1) * 100}`}>
                 <div className="text-4xl mb-6">{item.icon}</div>
                 <h3 className="text-2xl font-black text-sky-950 mb-4 leading-tight">{item.title}</h3>
                 <p className="text-slate-500 font-medium mb-8 leading-relaxed">{item.summary}</p>

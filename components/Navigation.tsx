@@ -68,15 +68,16 @@ export const Navigation: React.FC<Props> = ({ currentPage, onNavigate, user, onL
           <div className="flex items-center gap-4">
             {user ? (
               <div className="flex items-center gap-4">
-                {user.role === 'admin' && (
-                  <button 
-                    onClick={() => onNavigate('admin')}
-                    className="text-xs font-bold text-sky-500 hover:text-sky-700 uppercase tracking-wider bg-sky-50 px-2 py-1 rounded"
-                  >
-                    ניהול
-                  </button>
-                )}
-                <span className="text-sm font-medium text-slate-700">שלום, {user.username}</span>
+                <button 
+                  onClick={() => onNavigate(user.role === 'admin' ? 'admin' : 'user-dashboard')}
+                  className={`text-sm font-bold px-4 py-2 rounded-lg transition-all ${
+                    ['admin', 'user-dashboard'].includes(currentPage)
+                    ? 'bg-sky-100 text-sky-700'
+                    : 'text-sky-600 hover:bg-sky-50'
+                  }`}
+                >
+                  {user.role === 'admin' ? 'לוח בקרה' : 'הדשבורד שלי'}
+                </button>
                 <button 
                   onClick={onLogout}
                   className="bg-slate-100 text-slate-600 px-4 py-2 rounded-lg text-sm hover:bg-slate-200 transition-colors"
