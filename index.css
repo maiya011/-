@@ -1,10 +1,11 @@
+
 body { 
     font-family: 'Assistant', sans-serif; 
     margin: 0; 
 }
 
 .hero-gradient { 
-    background: linear-gradient(135deg, #064e3b 0%, #065f46 100%); 
+    background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%); 
 }
 
 /* Animations */

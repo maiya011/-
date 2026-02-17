@@ -8,8 +8,11 @@ import { Auth } from './components/Auth.tsx';
 import { AdminDashboard } from './components/AdminDashboard.tsx';
 import { Navigation } from './components/Navigation.tsx';
 import { Footer } from './components/Footer.tsx';
+import { CookieBanner } from './components/CookieBanner.tsx';
+import { CalculatorPage } from './components/CalculatorPage.tsx';
+import { Tips } from './components/Tips.tsx';
 
-type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin';
+type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'calculator' | 'tips';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
@@ -20,6 +23,8 @@ const App: React.FC = () => {
       case 'home': return <Home onNavigate={setCurrentPage} />;
       case 'about': return <About />;
       case 'articles': return <Articles />;
+      case 'tips': return <Tips />;
+      case 'calculator': return <CalculatorPage onNavigate={setCurrentPage} />;
       case 'forum': return <Forum user={user} onAuthClick={() => setCurrentPage('auth')} />;
       case 'auth': return <Auth onLogin={(u) => { setUser(u); setCurrentPage('home'); }} />;
       case 'admin': return user?.role === 'admin' ? <AdminDashboard /> : <Home onNavigate={setCurrentPage} />;
@@ -39,6 +44,7 @@ const App: React.FC = () => {
         {renderPage()}
       </main>
       <Footer onNavigate={setCurrentPage} />
+      <CookieBanner />
     </div>
   );
 };
