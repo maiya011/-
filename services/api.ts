@@ -6,7 +6,11 @@ const handleResponse = async (res: Response) => {
   if (!res.ok) {
     if (contentType && contentType.includes("application/json")) {
       const errorData = await res.json();
-      throw new Error(errorData.error || errorData.message || 'שגיאת שרת');
+      // הצגת השגיאה העיקרית + פירוט אם קיים (חשוב לניפוי שגיאות DB)
+      const message = errorData.details 
+        ? `${errorData.error}: ${errorData.details}`
+        : (errorData.error || errorData.message || 'שגיאת שרת');
+      throw new Error(message);
     } else {
       const text = await res.text();
       console.error("Server returned non-JSON error:", text);
