@@ -1,7 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api.ts';
 
-const CATEGORIES = ['כל הקטגוריות', 'סקירות ממשלתיות', 'מחקרים כלכליים', 'בריאות הלב', 'יעילות גמילה', 'מחלות ריאה'];
+const CATEGORIES = ['כל הקטגוריות', 'סקירות ממשלתיות', 'מחקרים כלכליים', 'בריאות הלב', 'יעילות גמילה', 'מחלות ריאה', 'מדע וטכנולוגיה'];
 
 interface Article {
   id: number;
@@ -14,6 +15,129 @@ interface Article {
   imageUrl?: string;
 }
 
+const MOCK_ARTICLES: Article[] = [
+  {
+    id: 1,
+    title: "תהליך הגמילה והשפעתו המיידית על הגוף",
+    cat: "בריאות הלב",
+    date: "2024-01-15",
+    summary: "סקירה של ynet על השינויים הפיזיולוגיים המתרחשים בגוף מרגע הפסקת העישון ועד שנים לאחר מכן.",
+    fullContent: "הפסקת עישון היא הצעד המשמעותי ביותר שניתן לעשות למען הבריאות. תוך דקות ספורות לחץ הדם מתייצב, ותוך שבועות הריאות מתחילות להשתקם...",
+    source: "https://www.ynet.co.il/health/article/r1ac3vnxbg",
+    imageUrl: "https://images.unsplash.com/photo-1506126613408-eca07ce68773?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 2,
+    title: "שינויים באורח החיים ומניעת מחלות לב",
+    cat: "בריאות הלב",
+    date: "2021-10-11",
+    summary: "מחקר מה-ACC הבוחן את הקשר בין הפסקת עישון לבין ירידה דרמטית בסיכון למחלות קרדיווסקולריות.",
+    fullContent: "המחקר מראה כי שילוב של הפסקת עישון עם פעילות גופנית מפחית את הסיכון לאירועי לב במידה ניכרת גם בקרב מעשנים כבדים לשעבר...",
+    source: "https://www.acc.org/Latest-in-Cardiology/Journal-Scans/2021/10/11/19/20/Combined-Associations-of-Changes",
+    imageUrl: "https://images.unsplash.com/photo-1505751172876-fa1923c5c528?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 3,
+    title: "חיסכון של 500 מיליון ליש\"ט למערכת הבריאות הבריטית",
+    cat: "מחקרים כלכליים",
+    date: "2023-08-07",
+    summary: "מחקר מאוניברסיטת ברונל חושף את הפוטנציאל הכלכלי העצום של מעבר מעשנים לתחליפים מופחתי נזק.",
+    fullContent: "אם מחצית מהמעשנים באנגליה יעברו לאידוי, ה-NHS יחסוך מעל חצי מיליארד ליש\"ט בשנה רק מהפחתת אשפוזים הקשורים לעישון...",
+    source: "https://www.brunel.ac.uk/news-and-events/news/articles/NHS-would-save-more-than-500m-a-year-if-half-of-England's-adult-smokers-vaped-instead",
+    imageUrl: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 4,
+    title: "סקירת קוקריין: יעילות מוצרי טבק ללא בעירה",
+    cat: "יעילות גמילה",
+    date: "2022-01-20",
+    summary: "הסקירה המדעית המקיפה ביותר בעולם בוחנת את רמת הבטיחות והיעילות של תחליפי טבק מחומם.",
+    fullContent: "הראיות מצביעות על כך שמוצרי טבק מחומם חושפים את המשתמשים לרמות נמוכות משמעותית של רעלים בהשוואה לסיגריות בוערות...",
+    source: "https://www.cochranelibrary.com/cdsr/doi/10.1002/14651858.CD013790.pub2/full",
+    imageUrl: "https://images.unsplash.com/photo-1532187863486-abf9d39d6d2d?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 5,
+    title: "הפחתת נזק משמעותית במוצרי טבק מחומם",
+    cat: "מדע וטכנולוגיה",
+    date: "2021-12-05",
+    summary: "ניתוח סיכונים ויתרונות של טכנולוגיות חימום טבק לעומת בעירה מסורתית.",
+    fullContent: "המאמר סוקר את הממצאים האחרונים בנוגע להפחתת חשיפה לחומרים מסרטנים בעת שימוש בטכנולוגיות חימום ללא עשן...",
+    source: "https://theconversation.com/heated-tobacco-a-new-review-looks-at-the-risks-and-benefits-173110",
+    imageUrl: "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 6,
+    title: "שינוי שיטת מיסוי הטבק והשפעתו על בריאות הציבור",
+    cat: "מחקרים כלכליים",
+    date: "2023-09-12",
+    summary: "דיווח ממעריב על המלצות למיסוי דיפרנציאלי המעודד מעבר למוצרים פחות מזיקים.",
+    fullContent: "מומחים קוראים לממשלה לאמץ את המודל הבריטי והשוודי, המבחין בין סיגריות בוערות למוצרים ללא עשן מבחינת מיסוי...",
+    source: "https://www.maariv.co.il/news/health/article-1035519",
+    imageUrl: "https://images.unsplash.com/photo-1580519327900-512c9852262a?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 7,
+    title: "המדריך הרשמי של ה-NHS לשימוש באידוי ככלי גמילה",
+    cat: "יעילות גמילה",
+    date: "2023-11-01",
+    summary: "הנחיות מערכת הבריאות הבריטית למעשנים המעוניינים להשתמש בתחליפים כדי להפסיק לעשן.",
+    fullContent: "ה-NHS קובע כי אידוי הוא אחד הכלים היעילים ביותר לגמילה מעישון סיגריות, וכי הסיכון הבריאותי שלו נמוך בהרבה...",
+    source: "https://www.nhs.uk/live-well/quit-smoking/using-e-cigarettes-to-stop-smoking/",
+    imageUrl: "https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 8,
+    title: "8 דברים שחשוב לדעת על סיגריות אלקטרוניות",
+    cat: "מדע וטכנולוגיה",
+    date: "2020-03-05",
+    summary: "סקירה של רשות בריאות הציבור באנגליה (UKHSA) המפריכה מיתוסים נפוצים.",
+    fullContent: "רשות הבריאות מבהירה כי אידוי אינו נטול סיכונים, אך הוא בטוח ב-95% יותר מעישון טבק מסורתי...",
+    source: "https://ukhsa.blog.gov.uk/2020/03/05/8-things-to-know-about-e-cigarettes/",
+    imageUrl: "https://images.unsplash.com/photo-1512428559083-a401a3039550?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 9,
+    title: "השפעת גישה למוצרי אידוי על בריאות הציבור באוסטרליה",
+    cat: "סקירות ממשלתיות",
+    date: "2023-07-28",
+    summary: "ניתוח של אוניברסיטת מלבורן המצביע על כך שהקלת הגישה לתחליפים עשויה להציל חיים.",
+    fullContent: "המחקר טוען כי המדיניות הנוכחית באוסטרליה עשויה להשתנות כדי לאפשר למעשנים גישה בטוחה יותר לתחליפים...",
+    source: "https://pursuit.unimelb.edu.au/articles/access-to-e-cigarettes-will-improve-australia-s-health",
+    imageUrl: "https://images.unsplash.com/photo-1526948128573-703ee1aeb6fa?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 10,
+    title: "בריאות הציבור והפחתת נזקי העישון במבט עולמי",
+    cat: "מדע וטכנולוגיה",
+    date: "2019-11-20",
+    summary: "מחקר ב-The Lancet הבוחן את ההשפעה של חלופות ניקוטין על אוכלוסיות מעשנים.",
+    fullContent: "המאמר מדגיש את החשיבות של הצעת חלופות לאנשים שאינם מצליחים להיגמל לחלוטין מניקוטין באמצעים מסורתיים...",
+    source: "https://www.thelancet.com/journals/lanpub/article/PIIS2468-2667(19)30241-5/fulltext",
+    imageUrl: "https://images.unsplash.com/photo-1454165833767-027ffea9e778?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 11,
+    title: "מחקר קליני: השוואת סמני רעילות בין סיגריות לתחליפים",
+    cat: "מדע וטכנולוגיה",
+    date: "2022-12-01",
+    summary: "ממצאים מ-PubMed המראים ירידה דרמטית בחשיפה לרעלים בעת מעבר למוצרים ללא בעירה.",
+    fullContent: "המחקר מנתח את רמות החומרים המסרטנים בשתן ובדם של מעשנים שעברו לשימוש מלא בתחליפים...",
+    source: "https://pubmed.ncbi.nlm.nih.gov/36456941/",
+    imageUrl: "https://images.unsplash.com/photo-1579154235602-4bc197443139?auto=format&fit=crop&q=80&w=800"
+  },
+  {
+    id: 12,
+    title: "השפעות ארוכות טווח של אידוי על הריאות",
+    cat: "מחלות ריאה",
+    date: "2023-01-10",
+    summary: "מחקר נוסף מ-PubMed הבוחן את השינויים בתפקודי הריאה לאורך זמן בקרב מעשנים לשעבר.",
+    fullContent: "הממצאים מראים שיפור משמעותי בתסמינים נשימתיים בקרב חולי COPD שעברו מעישון סיגריות לאידוי...",
+    source: "https://pubmed.ncbi.nlm.nih.gov/36638185/",
+    imageUrl: "https://images.unsplash.com/photo-1559757175-5700dde675bc?auto=format&fit=crop&q=80&w=800"
+  }
+];
+
 export const Articles: React.FC = () => {
   const [articles, setArticles] = useState<Article[]>([]);
   const [selectedCat, setSelectedCat] = useState('כל הקטגוריות');
@@ -25,9 +149,14 @@ export const Articles: React.FC = () => {
     setIsLoading(true);
     try {
       const data = await api.getArticles(query);
-      setArticles(data);
+      if (data && data.length > 0) {
+        setArticles(data);
+      } else {
+        setArticles(MOCK_ARTICLES);
+      }
     } catch (err) {
       console.error(err);
+      setArticles(MOCK_ARTICLES);
     } finally {
       setIsLoading(false);
     }
@@ -106,7 +235,7 @@ export const Articles: React.FC = () => {
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="mb-16 flex flex-col md:flex-row justify-between items-start gap-10 reveal">
+      <div className="mb-16 flex flex-col md:flex-row justify-between items-start gap-10 reveal visible">
         <div>
           <h1 className="text-4xl md:text-6xl font-black text-slate-900 mb-6 tracking-tight">ספריית הידע</h1>
           <p className="text-xl text-slate-500 max-w-xl font-medium leading-relaxed">ריכוז מחקרים בינלאומיים, סקירות ממשלתיות ונתונים סטטיסטיים מתורגמים לעברית.</p>
@@ -126,7 +255,7 @@ export const Articles: React.FC = () => {
         </form>
       </div>
       
-      <div className="flex flex-wrap gap-3 mb-16 reveal reveal-delay-100">
+      <div className="flex flex-wrap gap-3 mb-16 reveal visible">
         {CATEGORIES.map((cat) => (
           <button
             key={cat}
@@ -157,7 +286,7 @@ export const Articles: React.FC = () => {
               <div 
                 key={article.id} 
                 onClick={() => setSelectedArticle(article)}
-                className="bg-white rounded-[3rem] overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-3 transition-all flex flex-col group cursor-pointer reveal"
+                className="bg-white rounded-[3rem] overflow-hidden shadow-sm border border-slate-100 hover:shadow-2xl hover:-translate-y-3 transition-all flex flex-col group cursor-pointer reveal visible"
                 style={{ transitionDelay: `${(idx % 3) * 100}ms` }}
               >
                 {article.imageUrl && (

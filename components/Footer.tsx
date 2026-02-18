@@ -14,7 +14,7 @@ export const Footer: React.FC<Props> = ({ onNavigate }) => {
             <div className="bg-sky-500 p-2 rounded-lg">
                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
             </div>
-            <span className="text-xl font-bold text-white">נקי מעישון</span>
+            <span className="text-xl font-bold text-white">FREE FROM SMOKE</span>
           </div>
           <p className="max-w-md mb-6 leading-relaxed text-sm md:text-base">
             המרכז הוקם כיוזמה פרטית התנדבותית במטרה להנגיש ידע מחקרי עדכני ולספק תמיכה קהילתית לכל מי שבוחר בחיים בריאים יותר.
@@ -36,14 +36,14 @@ export const Footer: React.FC<Props> = ({ onNavigate }) => {
           <h4 className="font-bold text-white mb-6 text-lg">מידע נוסף</h4>
           <ul className="space-y-4 text-sm md:text-base">
              <li><button onClick={() => onNavigate('about')} className="hover:text-yellow-300 transition-colors">הסיפור שלנו</button></li>
-             <li><button onClick={() => onNavigate('calculator')} className="hover:text-yellow-300 transition-colors">מחשבון חיסכון</button></li>
+             <li><button onClick={() => onNavigate('calculator')} className="hover:text-yellow-300 transition-colors">מחשבון החסכונות ואריכות ימים</button></li>
              <li><button className="hover:text-yellow-300 transition-colors opacity-60 cursor-not-allowed">מדיניות פרטיות</button></li>
           </ul>
         </div>
       </div>
       
       <div className="max-w-7xl mx-auto px-4 mt-12 pt-8 border-t border-sky-900 text-center text-[10px] md:text-xs opacity-40">
-        © {new Date().getFullYear()} נקי מעישון - המרכז הישראלי למחקר ומידע. כל הזכויות שמורות למנחם ג.
+        © {new Date().getFullYear()} FREE FROM SMOKE - המרכז הישראלי למחקר ומידע. כל הזכויות שמורות למנחם ג.
       </div>
     </footer>
   );

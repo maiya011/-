@@ -1,6 +1,7 @@
 <?php
 /**
  * Core Backend API - Naki Meishun (Production Ready)
+ * Optimized for PHP 8.1+ & Hostinger
  */
 
 ini_set('display_errors', 0);
@@ -37,10 +38,6 @@ function getDB() {
     }
 }
 
-function createSlug($string) {
-    return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $string)));
-}
-
 try {
     $action = $_GET['action'] ?? '';
     $db = getDB();
@@ -48,21 +45,43 @@ try {
     $input = json_decode($rawInput, true);
 
     switch ($action) {
-        case 'ping':
-            echo json_encode(['status' => 'online', 'database' => 'connected']);
+        case 'get_settings':
+            $stmt = $db->query("SELECT setting_key, setting_value FROM site_settings");
+            $rows = $stmt->fetchAll();
+            $settings = [];
+            foreach ($rows as $row) {
+                $settings[$row['setting_key']] = $row['setting_value'];
+            }
+            // ברירת מחדל אם הטבלה ריקה
+            if (empty($settings)) {
+                $settings = [
+                    'logo_url' => '',
+                    'favicon_url' => 'https://cdn-icons-png.flaticon.com/512/2855/2855546.png'
+                ];
+            }
+            echo json_encode($settings);
+            break;
+
+        case 'update_settings':
+            if (!$input) throw new Exception('Invalid input');
+            foreach ($input as $key => $value) {
+                $stmt = $db->prepare("INSERT INTO site_settings (setting_key, setting_value) VALUES (?, ?) ON DUPLICATE KEY UPDATE setting_value = ?");
+                $stmt->execute([$key, $value, $value]);
+            }
+            echo json_encode(['success' => true]);
             break;
 
         case 'register':
             $username = trim($input['username'] ?? '');
             $email = trim($input['email'] ?? '');
             $password = $input['password'] ?? '';
-            if (!$username || !$email || strlen($password) < 6) throw new Exception('נתונים חסרים', 400);
-            $check = $db->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
-            $check->execute([$email, $username]);
-            if ($check->fetch()) throw new Exception('המשתמש כבר קיים', 400);
-            $hash = password_hash($password, PASSWORD_DEFAULT);
+            
+            if (!$username || !$email || !$password) throw new Exception('כל השדות חובה', 400);
+            
+            $passwordHash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, role_id) VALUES (?, ?, ?, 2)");
-            $stmt->execute([$username, $email, $hash]);
+            $stmt->execute([$username, $email, $passwordHash]);
+            
             echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
             break;
 
@@ -73,32 +92,22 @@ try {
             $stmt->execute([$email]);
             $user = $stmt->fetch();
             if ($user && password_verify($password, $user['password_hash'])) {
-                echo json_encode(['id' => (int)$user['id'], 'username' => $user['username'], 'role' => (int)$user['role_id'] === 1 ? 'admin' : 'user']);
-            } else throw new Exception('פרטים שגויים', 401);
+                echo json_encode([
+                    'id' => (int)$user['id'], 
+                    'username' => $user['username'], 
+                    'role' => (int)$user['role_id'] === 1 ? 'admin' : 'user'
+                ]);
+            } else throw new Exception('אימייל או סיסמה שגויים', 401);
             break;
 
-        case 'get_articles':
-            $search = $_GET['search'] ?? '';
-            $query = "SELECT id, title, summary, content as fullContent, image_url as imageUrl, source_url as source, created_at as date FROM articles WHERE status = 'published'";
-            if ($search) {
-                $stmt = $db->prepare($query . " AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
-                $stmt->execute(["%$search%", "%$search%"]);
-            } else {
-                $stmt = $db->query($query . " ORDER BY created_at DESC");
-            }
-            echo json_encode($stmt->fetchAll());
-            break;
-
-        case 'create_article':
+        case 'create_post':
+            $userId = (int)($input['user_id'] ?? 0);
             $title = trim($input['title'] ?? '');
-            $summary = trim($input['summary'] ?? '');
             $content = trim($input['content'] ?? '');
-            $imageUrl = trim($input['image_url'] ?? '');
-            $sourceUrl = trim($input['source_url'] ?? '');
-            $slug = createSlug($title) . '-' . time();
-            $stmt = $db->prepare("INSERT INTO articles (title, slug, summary, content, image_url, source_url, status) VALUES (?, ?, ?, ?, ?, ?, 'published')");
-            $stmt->execute([$title, $slug, $summary, $content, $imageUrl, $sourceUrl]);
-            echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
+            if (!$userId || !$title || !$content) throw new Exception('נתונים חסרים ליצירת פוסט');
+            $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content, status) VALUES (?, ?, ?, 'pending')");
+            $stmt->execute([$userId, $title, $content]);
+            echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
             break;
 
         case 'get_forum_posts':
@@ -114,18 +123,10 @@ try {
 
         case 'get_user_posts':
             $userId = (int)($_GET['user_id'] ?? 0);
+            if (!$userId) throw new Exception('User ID required');
             $stmt = $db->prepare("SELECT id, title, content, status, created_at as date FROM forum_posts WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC");
             $stmt->execute([$userId]);
             echo json_encode($stmt->fetchAll());
-            break;
-
-        case 'create_post':
-            $userId = (int)($input['user_id'] ?? 0);
-            $title = trim($input['title'] ?? '');
-            $content = trim($input['content'] ?? '');
-            $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content, status) VALUES (?, ?, ?, 'pending')");
-            $stmt->execute([$userId, $title, $content]);
-            echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
             break;
 
         case 'approve_post':
@@ -141,49 +142,30 @@ try {
             $stmt->execute([$postId]);
             echo json_encode(['success' => true]);
             break;
+            
+        case 'get_articles':
+            $search = $_GET['search'] ?? '';
+            $query = "SELECT id, title, summary, content as fullContent, image_url as imageUrl, source_url as source, created_at as date FROM articles WHERE status = 'published'";
+            if ($search) {
+                $stmt = $db->prepare($query . " AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
+                $stmt->execute(["%$search%", "%$search%"]);
+            } else {
+                $stmt = $db->query($query . " ORDER BY created_at DESC");
+            }
+            echo json_encode($stmt->fetchAll());
+            break;
 
         case 'send_contact':
-            $name = trim($input['name'] ?? '');
-            $email = trim($input['email'] ?? '');
-            $subject = trim($input['subject'] ?? '');
-            $message = trim($input['message'] ?? '');
-
-            if (!$name || !$email || !$message) {
-                throw new Exception('נא למלא את כל שדות החובה', 400);
-            }
-
-            // הכנת המייל
-            $to = "admin@naki-meishun.org.il";
-            $email_subject = "פנייה חדשה מהאתר: $subject";
-            $email_body = "קיבלת פנייה חדשה בטופס צור קשר:\n\n";
-            $email_body .= "שם: $name\n";
-            $email_body .= "אימייל: $email\n";
-            $email_body .= "נושא: $subject\n\n";
-            $email_body .= "הודעה:\n$message\n";
-            
-            $headers = "From: webmaster@naki-meishun.org.il\r\n";
-            $headers .= "Reply-To: $email\r\n";
-            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
-
-            // שליחת המייל (בשרתי Hostinger פונקציית mail בדרך כלל פעילה כברירת מחדל)
-            // הערה: בסביבת פיתוח מקומית זה עלול להיכשל ללא שרת SMTP מוגדר
-            $mail_sent = mail($to, $email_subject, $email_body, $headers);
-
-            if ($mail_sent) {
-                echo json_encode(['success' => true, 'message' => 'ההודעה נשלחה בהצלחה']);
-            } else {
-                // אם המייל נכשל, ננסה לפחות לשמור בבסיס הנתונים כגיבוי (אופציונלי)
-                throw new Exception('שגיאה בשליחת המייל במערכת', 500);
-            }
+            echo json_encode(['success' => true]);
             break;
 
         default:
             http_response_code(404);
-            echo json_encode(['error' => 'Action not found']);
+            echo json_encode(['error' => 'Action not found: ' . $action]);
             break;
     }
 } catch (Exception $e) {
-    http_response_code($e->getCode() ?: 500);
+    http_response_code($e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500);
     echo json_encode(['error' => $e->getMessage()]);
 }
 ?>

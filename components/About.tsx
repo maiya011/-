@@ -46,12 +46,12 @@ export const About: React.FC = () => {
                 <p className="text-base text-slate-600 leading-relaxed font-medium">ה-FDA וגופי בריאות מובילים מכירים בתחליפי עישון כחלופות פחות מזיקות.</p>
               </div>
               <div className="flex-1 bg-yellow-50/50 p-8 rounded-3xl border border-yellow-100 shadow-sm hover:shadow-md transition-shadow">
-                <h4 className="font-black text-sky-900 mb-3 text-xl">היבט כלכלי</h4>
-                <p className="text-base text-slate-600 leading-relaxed font-medium">שינוי הרגלים מוביל גם לחיסכון כלכלי משמעותי לטווח הארוך.</p>
+                <h4 className="font-black text-sky-900 mb-3 text-xl">האם ידעתם?</h4>
+                <p className="text-base text-slate-600 leading-relaxed font-medium">במדינות רבות בעולם תחליפי עישון נמכרים במחיר נמוך יותר מסיגריות, מאחר שהם מוגדרים כמוצרי מופחתי סיכון מבחינה רגולטורית.</p>
               </div>
             </div>
 
-            <p className="text-sky-600 font-black text-2xl mt-12 animate-fade-in-up delay-500">
+            <p className="animate-fade-in delay-500">
               מאחל לכולם בריאות ושתזכו לשנים רבות עם היקרים לכם.
             </p>
           </div>
