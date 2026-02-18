@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { api } from '../services/api.ts';
 
@@ -25,11 +24,12 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
   const [newTitle, setNewTitle] = useState('');
   const [newContent, setNewContent] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
 
   const loadPosts = async () => {
     setIsLoading(true);
     try {
-      const data = await api.getForumPosts();
+      const data = await api.getForumPosts(false); // רק פוסטים מאושרים
       setPosts(data);
     } catch (err) {
       console.error(err);
@@ -52,7 +52,9 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
       setNewTitle('');
       setNewContent('');
       setShowNewPostForm(false);
-      await loadPosts(); // רענון רשימה
+      setSuccessMsg('הפוסט נשלח בהצלחה וממתין לאישור מנהל המערכת.');
+      setTimeout(() => setSuccessMsg(''), 5000);
+      // אין צורך לרענן פוסטים כי החדש ממתין לאישור ולא יופיע מיד
     } catch (err) {
       alert('שגיאה ביצירת הפוסט');
     } finally {
@@ -60,14 +62,24 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
     }
   };
 
-  const toggleLike = (id: number) => {
-    if (!user) {
-      onAuthClick();
-      return;
+  const handleSharePost = (post: Post) => {
+    const shareData = {
+      title: post.title,
+      text: `קראו את הפוסט של ${post.author} בפורום "נקי מעישון": ${post.title}\n\n${post.content.substring(0, 100)}...`,
+      url: window.location.origin + window.location.pathname + '?post=' + post.id
+    };
+
+    if (navigator.share) {
+      navigator.share(shareData).catch(err => console.log('Error sharing', err));
+    } else {
+      // Fallback: Copy to clipboard
+      const shareUrl = shareData.url;
+      navigator.clipboard.writeText(shareUrl).then(() => {
+        alert('קישור לפוסט הועתק ללוח!');
+      }).catch(err => {
+        console.error('Could not copy text: ', err);
+      });
     }
-    setPosts(posts.map(p => 
-      p.id === id ? { ...p, likes: (p.likes || 0) + (p.isLiked ? -1 : 1), isLiked: !p.isLiked } : p
-    ));
   };
 
   return (
@@ -84,6 +96,12 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
           {showNewPostForm ? 'ביטול' : (user ? 'פוסט חדש' : 'התחברו כדי להשתתף')}
         </button>
       </div>
+
+      {successMsg && (
+        <div className="mb-8 bg-emerald-50 text-emerald-700 p-6 rounded-2xl border border-emerald-100 font-bold text-center animate-scale-in">
+          {successMsg}
+        </div>
+      )}
 
       {showNewPostForm && (
         <div className="mb-12 bg-white p-8 rounded-[2rem] shadow-xl border border-sky-100 animate-scale-in">
@@ -110,7 +128,7 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
               disabled={isSubmitting}
               className="bg-emerald-600 text-white px-10 py-3 rounded-xl font-black hover:bg-emerald-700 disabled:opacity-50"
             >
-              {isSubmitting ? 'שולח...' : 'פרסום פוסט'}
+              {isSubmitting ? 'שולח לבדיקה...' : 'פרסום פוסט'}
             </button>
           </form>
         </div>
@@ -133,21 +151,32 @@ export const Forum: React.FC<Props> = ({ user, onAuthClick }) => {
                 className="bg-white p-8 rounded-[2rem] shadow-sm border border-sky-50 hover:border-sky-200 transition-all reveal"
                 style={{ transitionDelay: `${idx * 100}ms` }}
               >
-                <div className="flex items-center gap-4 mb-6">
-                  <div className="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center font-black">
-                    {post.author?.[0] || 'U'}
+                <div className="flex items-center justify-between mb-6">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-sky-100 text-sky-700 rounded-2xl flex items-center justify-center font-black">
+                      {post.author?.[0] || 'U'}
+                    </div>
+                    <div>
+                      <div className="font-black text-sky-900">{post.author}</div>
+                      <div className="text-xs text-slate-400 font-bold">{new Date(post.date).toLocaleDateString('he-IL')}</div>
+                    </div>
                   </div>
-                  <div>
-                    <div className="font-black text-sky-900">{post.author}</div>
-                    <div className="text-xs text-slate-400 font-bold">{new Date(post.date).toLocaleDateString('he-IL')}</div>
-                  </div>
+                  <button 
+                    onClick={() => handleSharePost(post)}
+                    className="p-3 text-slate-400 hover:text-sky-600 hover:bg-sky-50 rounded-xl transition-all"
+                    title="שתף פוסט"
+                  >
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                    </svg>
+                  </button>
                 </div>
                 <h2 className="text-2xl font-black text-sky-950 mb-4">{post.title}</h2>
-                <p className="text-slate-600 mb-8 leading-relaxed text-lg">{post.content}</p>
+                <p className="text-slate-600 mb-8 leading-relaxed text-lg whitespace-pre-line">{post.content}</p>
                 <div className="flex items-center gap-8 pt-6 border-t border-sky-50">
-                  <button onClick={() => toggleLike(post.id)} className={`flex items-center gap-2 font-black ${post.isLiked ? 'text-sky-600' : 'text-slate-400'}`}>
-                    <svg className="w-6 h-6" fill={post.isLiked ? 'currentColor' : 'none'} stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
-                    {post.likes || 0}
+                  <button className="flex items-center gap-2 font-black text-slate-400 hover:text-sky-600 transition-colors">
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" /></svg>
+                    אהבתי
                   </button>
                 </div>
               </div>

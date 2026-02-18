@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { api } from '../services/api.ts';
 
 export const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -9,6 +9,7 @@ export const Contact: React.FC = () => {
     message: ''
   });
   const [status, setStatus] = useState<'idle' | 'sending' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
@@ -18,15 +19,16 @@ export const Contact: React.FC = () => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setStatus('sending');
+    setErrorMessage('');
 
-    // סימולציה של שליחת נתונים לשרת (Admin Email)
     try {
-      await new Promise(resolve => setTimeout(resolve, 1500));
-      console.log('Form Submitted to Admin:', formData);
+      await api.sendContactForm(formData);
       setStatus('success');
       setFormData({ name: '', email: '', subject: '', message: '' });
-    } catch (err) {
+    } catch (err: any) {
+      console.error('Contact error:', err);
       setStatus('error');
+      setErrorMessage(err.message || 'שגיאה בשליחת ההודעה. נסה שוב מאוחר יותר.');
     }
   };
 
@@ -115,6 +117,12 @@ export const Contact: React.FC = () => {
         {/* Form Column */}
         <div className="lg:col-span-7">
           <div className="bg-white p-10 md:p-12 rounded-[3rem] shadow-xl border border-sky-50">
+            {status === 'error' && (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-6 font-bold text-center border border-red-100">
+                {errorMessage}
+              </div>
+            )}
+            
             <form onSubmit={handleSubmit} className="space-y-6">
               <div className="grid md:grid-cols-2 gap-6">
                 <div>

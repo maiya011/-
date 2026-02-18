@@ -10,11 +10,15 @@ interface Props {
 export const Navigation: React.FC<Props> = ({ currentPage, onNavigate, user, onLogout }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
 
+  // הגדרת פריטי התפריט הבסיסיים
   const navItems = [
     { id: 'home', label: 'דף הבית' },
+    // הצגת המעקב רק למשתמשים רשומים ומחוברים
+    ...(user ? [{ id: 'tracker', label: 'המעקב שלי' }] : []),
     { id: 'tips', label: 'טיפים לגמילה' },
     { id: 'articles', label: 'מאמרים' },
     { id: 'forum', label: 'פורום קהילה' },
+    { id: 'contact', label: 'צור קשר' },
   ];
 
   const handleNavigate = (id: string) => {

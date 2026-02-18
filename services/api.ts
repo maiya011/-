@@ -1,43 +1,31 @@
-const API_BASE = '/backend_core.php';
+const API_BASE = './backend_core.php';
 
 const handleResponse = async (res: Response) => {
   const contentType = res.headers.get("content-type");
-  
   if (!res.ok) {
     if (contentType && contentType.includes("application/json")) {
       const errorData = await res.json();
-      // הצגת השגיאה העיקרית + פירוט אם קיים (חשוב לניפוי שגיאות DB)
-      const message = errorData.details 
-        ? `${errorData.error}: ${errorData.details}`
-        : (errorData.error || errorData.message || 'שגיאת שרת');
-      throw new Error(message);
-    } else {
-      const text = await res.text();
-      console.error("Server returned non-JSON error:", text);
-      throw new Error(`שגיאת שרת (Status ${res.status}). פנה למנהל המערכת.`);
+      throw new Error(errorData.error || 'שגיאת שרת');
     }
+    throw new Error(`שגיאת תקשורת (${res.status})`);
   }
-
-  if (!contentType || !contentType.includes("application/json")) {
-    const text = await res.text();
-    console.error("Expected JSON but got:", text);
-    throw new Error("השרת החזיר תשובה שאינה תקינה. וודא שקובץ ה-PHP קיים ונגיש.");
-  }
-
   return res.json();
 };
 
 export const api = {
   async getArticles(search = '') {
-    const url = search 
-      ? `${API_BASE}?action=get_articles&search=${encodeURIComponent(search)}`
-      : `${API_BASE}?action=get_articles`;
+    const url = `${API_BASE}?action=get_articles${search ? `&search=${encodeURIComponent(search)}` : ''}`;
     const res = await fetch(url);
     return handleResponse(res);
   },
 
-  async getForumPosts() {
-    const res = await fetch(`${API_BASE}?action=get_forum_posts`);
+  async getForumPosts(isAdmin = false) {
+    const res = await fetch(`${API_BASE}?action=get_forum_posts${isAdmin ? '&role=admin' : ''}`);
+    return handleResponse(res);
+  },
+
+  async getUserPosts(userId: number) {
+    const res = await fetch(`${API_BASE}?action=get_user_posts&user_id=${userId}`);
     return handleResponse(res);
   },
 
@@ -64,6 +52,43 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ user_id: userId, title, content })
+    });
+    return handleResponse(res);
+  },
+
+  async sendContactForm(data: { name: string, email: string, subject: string, message: string }) {
+    const res = await fetch(`${API_BASE}?action=send_contact`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
+    });
+    return handleResponse(res);
+  },
+
+  // Admin Actions
+  async approvePost(postId: number) {
+    const res = await fetch(`${API_BASE}?action=approve_post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId })
+    });
+    return handleResponse(res);
+  },
+
+  async deletePost(postId: number) {
+    const res = await fetch(`${API_BASE}?action=delete_post`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ post_id: postId })
+    });
+    return handleResponse(res);
+  },
+
+  async createArticle(data: { title: string, summary: string, content: string, image_url?: string, source_url?: string }) {
+    const res = await fetch(`${API_BASE}?action=create_article`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data)
     });
     return handleResponse(res);
   },

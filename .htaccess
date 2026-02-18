@@ -1,3 +1,4 @@
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   RewriteBase /
@@ -6,14 +7,22 @@
   RewriteCond %{HTTPS} off
   RewriteRule ^(.*)$ https://%{HTTP_HOST}%{REQUEST_URI} [L,R=301]
 
-  # אל תבצע ניתוב מחדש אם הקובץ קיים פיזית (זה קריטי עבור backend_core.php)
-  RewriteCond %{REQUEST_FILENAME} -f
+  # אל תבצע ניתוב מחדש אם הקובץ או התיקייה קיימים פיזית
+  # זה מאפשר לקבצי assets (JS, CSS, תמונות) ולקובץ ה-PHP לעבוד
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
   RewriteRule ^ - [L]
 
-  # אל תבצע ניתוב מחדש עבור קבצי ה-API
-  RewriteCond %{REQUEST_URI} ^/backend_core\.php [NC]
-  RewriteRule ^ - [L]
-
-  # הפנה את כל השאר ל-index.html (עבור React Router)
+  # הפנה את כל הבקשות האחרות ל-index.html
+  # זה מאפשר ל-React Router לנהל את הניווט (למשל /forum או /tips)
   RewriteRule ^ index.html [L]
+</IfModule>
+
+# אבטחה בסיסית - מניעת צפייה ברשימת קבצים בתיקיות
+Options -Indexes
+
+# הגדרת סוגי קבצים
+<IfModule mod_mime.c>
+  AddType application/javascript .js
+  AddType text/css .css
 </IfModule>

@@ -1,13 +1,11 @@
 <?php
 /**
- * Core Backend API - Naki Meishun
+ * Core Backend API - Naki Meishun (Production Ready)
  */
 
-// מניעת פליטת שגיאות כ-HTML ששובר את ה-JSON
 ini_set('display_errors', 0);
 error_reporting(E_ALL);
 
-// הגדרת Header של JSON מיד בהתחלה
 header('Content-Type: application/json; charset=utf-8');
 header('Access-Control-Allow-Origin: *');
 header('Access-Control-Allow-Methods: GET, POST, OPTIONS');
@@ -34,20 +32,18 @@ function getDB() {
         ]);
     } catch (\PDOException $e) {
         http_response_code(500);
-        echo json_encode([
-            'error' => 'Database connection failed',
-            'details' => $e->getMessage(),
-            'server_user' => $user,
-            'hint' => 'אם הסיסמה הוחלפה ב-hPanel, וודא שהיא הועתקה נכון ללא רווחים.'
-        ]);
+        echo json_encode(['error' => 'Database connection failed', 'details' => $e->getMessage()]);
         exit;
     }
+}
+
+function createSlug($string) {
+    return strtolower(trim(preg_replace('/[^A-Za-z0-9-]+/', '-', $string)));
 }
 
 try {
     $action = $_GET['action'] ?? '';
     $db = getDB();
-
     $rawInput = file_get_contents('php://input');
     $input = json_decode($rawInput, true);
 
@@ -60,17 +56,10 @@ try {
             $username = trim($input['username'] ?? '');
             $email = trim($input['email'] ?? '');
             $password = $input['password'] ?? '';
-            
-            if (!$username || !$email || strlen($password) < 6) {
-                throw new Exception('נתונים חסרים או סיסמה קצרה מדי', 400);
-            }
-
+            if (!$username || !$email || strlen($password) < 6) throw new Exception('נתונים חסרים', 400);
             $check = $db->prepare("SELECT id FROM users WHERE email = ? OR username = ?");
             $check->execute([$email, $username]);
-            if ($check->fetch()) {
-                throw new Exception('המשתמש או האימייל כבר קיימים', 400);
-            }
-
+            if ($check->fetch()) throw new Exception('המשתמש כבר קיים', 400);
             $hash = password_hash($password, PASSWORD_DEFAULT);
             $stmt = $db->prepare("INSERT INTO users (username, email, password_hash, role_id) VALUES (?, ?, ?, 2)");
             $stmt->execute([$username, $email, $hash]);
@@ -80,35 +69,53 @@ try {
         case 'login':
             $email = trim($input['email'] ?? '');
             $password = $input['password'] ?? '';
-            
             $stmt = $db->prepare("SELECT id, username, password_hash, role_id FROM users WHERE email = ?");
             $stmt->execute([$email]);
             $user = $stmt->fetch();
-            
             if ($user && password_verify($password, $user['password_hash'])) {
-                echo json_encode([
-                    'id' => (int)$user['id'],
-                    'username' => $user['username'],
-                    'role' => (int)$user['role_id'] === 1 ? 'admin' : 'user'
-                ]);
-            } else {
-                throw new Exception('אימייל או סיסמה שגויים', 401);
-            }
+                echo json_encode(['id' => (int)$user['id'], 'username' => $user['username'], 'role' => (int)$user['role_id'] === 1 ? 'admin' : 'user']);
+            } else throw new Exception('פרטים שגויים', 401);
             break;
 
         case 'get_articles':
             $search = $_GET['search'] ?? '';
+            $query = "SELECT id, title, summary, content as fullContent, image_url as imageUrl, source_url as source, created_at as date FROM articles WHERE status = 'published'";
             if ($search) {
-                $stmt = $db->prepare("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
+                $stmt = $db->prepare($query . " AND (title LIKE ? OR content LIKE ?) ORDER BY created_at DESC");
                 $stmt->execute(["%$search%", "%$search%"]);
             } else {
-                $stmt = $db->query("SELECT id, title, summary, content as fullContent, created_at as date FROM articles WHERE status = 'published' ORDER BY created_at DESC");
+                $stmt = $db->query($query . " ORDER BY created_at DESC");
             }
             echo json_encode($stmt->fetchAll());
             break;
 
+        case 'create_article':
+            $title = trim($input['title'] ?? '');
+            $summary = trim($input['summary'] ?? '');
+            $content = trim($input['content'] ?? '');
+            $imageUrl = trim($input['image_url'] ?? '');
+            $sourceUrl = trim($input['source_url'] ?? '');
+            $slug = createSlug($title) . '-' . time();
+            $stmt = $db->prepare("INSERT INTO articles (title, slug, summary, content, image_url, source_url, status) VALUES (?, ?, ?, ?, ?, ?, 'published')");
+            $stmt->execute([$title, $slug, $summary, $content, $imageUrl, $sourceUrl]);
+            echo json_encode(['success' => true, 'id' => $db->lastInsertId()]);
+            break;
+
         case 'get_forum_posts':
-            $stmt = $db->query("SELECT p.id, p.title, p.content, p.created_at as date, u.username as author FROM forum_posts p JOIN users u ON p.user_id = u.id WHERE p.deleted_at IS NULL ORDER BY p.created_at DESC");
+            $isAdmin = ($_GET['role'] ?? '') === 'admin';
+            $sql = "SELECT p.id, p.title, p.content, p.created_at as date, u.username as author, p.status 
+                    FROM forum_posts p JOIN users u ON p.user_id = u.id 
+                    WHERE p.deleted_at IS NULL";
+            if (!$isAdmin) $sql .= " AND p.status = 'approved'";
+            $sql .= " ORDER BY p.created_at DESC";
+            $stmt = $db->query($sql);
+            echo json_encode($stmt->fetchAll());
+            break;
+
+        case 'get_user_posts':
+            $userId = (int)($_GET['user_id'] ?? 0);
+            $stmt = $db->prepare("SELECT id, title, content, status, created_at as date FROM forum_posts WHERE user_id = ? AND deleted_at IS NULL ORDER BY created_at DESC");
+            $stmt->execute([$userId]);
             echo json_encode($stmt->fetchAll());
             break;
 
@@ -116,23 +123,67 @@ try {
             $userId = (int)($input['user_id'] ?? 0);
             $title = trim($input['title'] ?? '');
             $content = trim($input['content'] ?? '');
-
-            if (!$userId || !$title || !$content) {
-                throw new Exception('נתונים חסרים ליצירת פוסט', 400);
-            }
-
-            $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content) VALUES (?, ?, ?)");
+            $stmt = $db->prepare("INSERT INTO forum_posts (user_id, title, content, status) VALUES (?, ?, ?, 'pending')");
             $stmt->execute([$userId, $title, $content]);
             echo json_encode(['success' => true, 'id' => (int)$db->lastInsertId()]);
             break;
 
+        case 'approve_post':
+            $postId = (int)($input['post_id'] ?? 0);
+            $stmt = $db->prepare("UPDATE forum_posts SET status = 'approved' WHERE id = ?");
+            $stmt->execute([$postId]);
+            echo json_encode(['success' => true]);
+            break;
+
+        case 'delete_post':
+            $postId = (int)($input['post_id'] ?? 0);
+            $stmt = $db->prepare("UPDATE forum_posts SET deleted_at = NOW() WHERE id = ?");
+            $stmt->execute([$postId]);
+            echo json_encode(['success' => true]);
+            break;
+
+        case 'send_contact':
+            $name = trim($input['name'] ?? '');
+            $email = trim($input['email'] ?? '');
+            $subject = trim($input['subject'] ?? '');
+            $message = trim($input['message'] ?? '');
+
+            if (!$name || !$email || !$message) {
+                throw new Exception('נא למלא את כל שדות החובה', 400);
+            }
+
+            // הכנת המייל
+            $to = "admin@naki-meishun.org.il";
+            $email_subject = "פנייה חדשה מהאתר: $subject";
+            $email_body = "קיבלת פנייה חדשה בטופס צור קשר:\n\n";
+            $email_body .= "שם: $name\n";
+            $email_body .= "אימייל: $email\n";
+            $email_body .= "נושא: $subject\n\n";
+            $email_body .= "הודעה:\n$message\n";
+            
+            $headers = "From: webmaster@naki-meishun.org.il\r\n";
+            $headers .= "Reply-To: $email\r\n";
+            $headers .= "Content-Type: text/plain; charset=UTF-8\r\n";
+
+            // שליחת המייל (בשרתי Hostinger פונקציית mail בדרך כלל פעילה כברירת מחדל)
+            // הערה: בסביבת פיתוח מקומית זה עלול להיכשל ללא שרת SMTP מוגדר
+            $mail_sent = mail($to, $email_subject, $email_body, $headers);
+
+            if ($mail_sent) {
+                echo json_encode(['success' => true, 'message' => 'ההודעה נשלחה בהצלחה']);
+            } else {
+                // אם המייל נכשל, ננסה לפחות לשמור בבסיס הנתונים כגיבוי (אופציונלי)
+                throw new Exception('שגיאה בשליחת המייל במערכת', 500);
+            }
+            break;
+
         default:
             http_response_code(404);
-            echo json_encode(['error' => 'Action not found: ' . $action]);
+            echo json_encode(['error' => 'Action not found']);
             break;
     }
 } catch (Exception $e) {
-    http_response_code($e->getCode() >= 400 && $e->getCode() < 600 ? $e->getCode() : 500);
+    http_response_code($e->getCode() ?: 500);
     echo json_encode(['error' => $e->getMessage()]);
 }
 ?>

@@ -2,11 +2,20 @@
 import { defineConfig } from 'vite';
 import react from '@vitejs/plugin-react';
 
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  base: '/',
   build: {
-    outDir: 'build', // Hostinger expects 'build'
+    outDir: 'dist',
     emptyOutDir: true,
+    assetsDir: 'assets',
+    // מבטיח שהקבצים ייצאו עם שמות קבועים יחסית אם רוצים, או עם hash לבקרה
+    rollupOptions: {
+      output: {
+        manualChunks: undefined,
+      },
+    },
   },
   server: {
     port: 3000,

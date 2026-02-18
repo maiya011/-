@@ -13,12 +13,34 @@ import { CookieBanner } from './components/CookieBanner.tsx';
 import { CalculatorPage } from './components/CalculatorPage.tsx';
 import { Tips } from './components/Tips.tsx';
 import { Contact } from './components/Contact.tsx';
+import { Tracker } from './components/Tracker.tsx';
 
-type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'user-dashboard' | 'calculator' | 'tips' | 'contact';
+type Page = 'home' | 'about' | 'articles' | 'forum' | 'auth' | 'admin' | 'user-dashboard' | 'calculator' | 'tips' | 'contact' | 'tracker';
 
 const App: React.FC = () => {
   const [currentPage, setCurrentPage] = useState<Page>('home');
   const [user, setUser] = useState<{ id: number; username: string; role: string } | null>(null);
+
+  // Update Page Title and Scroll to Top
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    
+    const titles: Record<Page, string> = {
+      home: 'דף הבית',
+      about: 'אודות המרכז',
+      articles: 'מאמרים ומחקרים',
+      forum: 'פורום קהילה',
+      auth: 'התחברות / הרשמה',
+      admin: 'לוח בקרה',
+      'user-dashboard': 'האזור האישי',
+      calculator: 'מחשבון חיסכון',
+      tips: 'טיפים לגמילה',
+      contact: 'צור קשר',
+      tracker: 'מעקב התקדמות אישי'
+    };
+    
+    document.title = `נקי מעישון | ${titles[currentPage] || 'המרכז לידע'}`;
+  }, [currentPage]);
 
   // Initialize Intersection Observer for scroll-reveal animations
   useEffect(() => {
@@ -31,7 +53,6 @@ const App: React.FC = () => {
       entries.forEach((entry) => {
         if (entry.isIntersecting) {
           entry.target.classList.add('visible');
-          // Once visible, we can stop observing this specific element
           observer.unobserve(entry.target);
         }
       });
@@ -40,16 +61,7 @@ const App: React.FC = () => {
     const revealElements = document.querySelectorAll('.reveal');
     revealElements.forEach((el) => observer.observe(el));
 
-    // Re-run observer setup when the page content changes
-    const timer = setTimeout(() => {
-      const updatedElements = document.querySelectorAll('.reveal:not(.visible)');
-      updatedElements.forEach((el) => observer.observe(el));
-    }, 100);
-
-    return () => {
-      observer.disconnect();
-      clearTimeout(timer);
-    };
+    return () => observer.disconnect();
   }, [currentPage]);
 
   const renderPage = () => {
@@ -59,6 +71,8 @@ const App: React.FC = () => {
       case 'articles': return <Articles />;
       case 'tips': return <Tips />;
       case 'contact': return <Contact />;
+      // דף המעקב גלוי רק למשתמשים מחוברים
+      case 'tracker': return user ? <Tracker onNavigate={setCurrentPage} /> : <Home onNavigate={setCurrentPage} />;
       case 'calculator': return <CalculatorPage onNavigate={setCurrentPage} />;
       case 'forum': return <Forum user={user} onAuthClick={() => setCurrentPage('auth')} />;
       case 'user-dashboard': return user ? <UserDashboard user={user} onNavigate={setCurrentPage} /> : <Home onNavigate={setCurrentPage} />;
@@ -72,14 +86,14 @@ const App: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col">
+    <div className="min-h-screen flex flex-col selection:bg-sky-100 selection:text-sky-900">
       <Navigation 
         currentPage={currentPage} 
         onNavigate={setCurrentPage} 
         user={user} 
         onLogout={() => { setUser(null); setCurrentPage('home'); }}
       />
-      <main className="flex-grow">
+      <main className="flex-grow animate-fade-in">
         {renderPage()}
       </main>
       <Footer onNavigate={setCurrentPage} />

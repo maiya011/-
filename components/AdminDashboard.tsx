@@ -1,105 +1,194 @@
+import React, { useState, useEffect } from 'react';
+import { api } from '../services/api.ts';
 
-import React, { useState } from 'react';
-
-interface ContentItem {
+interface Post {
   id: number;
   title: string;
-  type: 'article' | 'research' | 'forum';
-  status: 'published' | 'draft' | 'flagged';
   author: string;
+  content: string;
+  status: 'pending' | 'approved';
   date: string;
 }
 
 export const AdminDashboard: React.FC = () => {
-  const [items, setItems] = useState<ContentItem[]>([
-    { id: 1, title: "השפעות עישון על מערכת כלי הדם", type: 'article', status: 'published', author: 'מנחם ג.', date: '2024-02-05' },
-    { id: 2, title: "היום ה-30 בלי סיגריה", type: 'forum', status: 'published', author: 'יוסי כ.', date: '2024-02-09' },
-    { id: 3, title: "סיכום דוח ה-PHE לשנת 2024", type: 'article', status: 'draft', author: 'מנחם ג.', date: '2024-02-01' },
-    { id: 4, title: "תוכן פוגעני דווח", type: 'forum', status: 'flagged', author: 'אנונימי', date: '2024-02-10' },
-  ]);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+  const [showArticleForm, setShowArticleForm] = useState(false);
+  
+  // Article Form State
+  const [newArticle, setNewArticle] = useState({
+    title: '',
+    summary: '',
+    content: '',
+    image_url: '',
+    source_url: ''
+  });
+
+  const loadData = async () => {
+    setIsLoading(true);
+    try {
+      const allPosts = await api.getForumPosts(true);
+      setPosts(allPosts);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    loadData();
+  }, []);
+
+  const handleApprove = async (postId: number) => {
+    try {
+      await api.approvePost(postId);
+      setPosts(posts.map(p => p.id === postId ? { ...p, status: 'approved' } : p));
+    } catch (err) {
+      alert('שגיאה באישור הפוסט');
+    }
+  };
+
+  const handleDelete = async (postId: number) => {
+    if (!confirm('האם אתה בטוח שברצונך למחוק את הפוסט?')) return;
+    try {
+      await api.deletePost(postId);
+      setPosts(posts.filter(p => p.id !== postId));
+    } catch (err) {
+      alert('שגיאה במחיקת הפוסט');
+    }
+  };
+
+  const handleCreateArticle = async (e: React.FormEvent) => {
+    e.preventDefault();
+    try {
+      await api.createArticle(newArticle);
+      alert('המאמר פורסם בהצלחה!');
+      setShowArticleForm(false);
+      setNewArticle({ title: '', summary: '', content: '', image_url: '', source_url: '' });
+    } catch (err) {
+      alert('שגיאה ביצירת המאמר');
+    }
+  };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12">
-      <div className="flex justify-between items-center mb-10">
+    <div className="max-w-7xl mx-auto px-4 py-12 animate-fade-in">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-800 mb-2">לוח בקרה למנהל</h1>
-          <p className="text-slate-600">ניהול תכנים, קהילה ודיווחים</p>
+          <h1 className="text-4xl font-black text-slate-800 mb-2">ניהול מערכת</h1>
+          <p className="text-slate-500 font-medium">מרכז השליטה של "נקי מעישון"</p>
         </div>
         <div className="flex gap-4">
-          <button className="bg-emerald-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-emerald-700">מאמר חדש</button>
-          <button className="bg-white border border-slate-200 text-slate-700 px-6 py-2 rounded-lg font-bold hover:bg-slate-50">ייצוא נתונים</button>
+          <button 
+            onClick={() => setShowArticleForm(!showArticleForm)}
+            className="bg-sky-600 text-white px-8 py-3 rounded-2xl font-black hover:bg-sky-700 transition-all shadow-lg active:scale-95"
+          >
+            {showArticleForm ? 'סגור טופס' : 'מחקר חדש +'}
+          </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-10">
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
-          <div className="text-slate-500 text-sm mb-1">סה"כ משתמשים</div>
-          <div className="text-3xl font-bold text-slate-800">1,240</div>
+      {showArticleForm && (
+        <div className="bg-white p-8 md:p-12 rounded-[2.5rem] shadow-2xl border border-sky-100 mb-12 animate-scale-in">
+          <h2 className="text-2xl font-black text-sky-900 mb-8">פרסום מחקר / מאמר חדש</h2>
+          <form onSubmit={handleCreateArticle} className="space-y-6">
+            <div className="grid md:grid-cols-2 gap-6">
+              <input 
+                type="text" placeholder="כותרת המאמר" 
+                value={newArticle.title} onChange={e => setNewArticle({...newArticle, title: e.target.value})}
+                className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-sky-500 outline-none font-bold"
+                required
+              />
+              <input 
+                type="text" placeholder="לינק לתמונה (URL)" 
+                value={newArticle.image_url} onChange={e => setNewArticle({...newArticle, image_url: e.target.value})}
+                className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-sky-500 outline-none font-bold"
+              />
+            </div>
+            <input 
+              type="text" placeholder="לינק למקור המחקר (Source URL)" 
+              value={newArticle.source_url} onChange={e => setNewArticle({...newArticle, source_url: e.target.value})}
+              className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-sky-500 outline-none font-bold"
+            />
+            <textarea 
+              placeholder="תקציר קצר (יופיע בכרטיסיה)" rows={2}
+              value={newArticle.summary} onChange={e => setNewArticle({...newArticle, summary: e.target.value})}
+              className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-sky-500 outline-none font-medium"
+              required
+            ></textarea>
+            <textarea 
+              placeholder="תוכן המאמר המלא..." rows={8}
+              value={newArticle.content} onChange={e => setNewArticle({...newArticle, content: e.target.value})}
+              className="w-full px-6 py-4 rounded-xl bg-slate-50 border border-slate-100 focus:border-sky-500 outline-none font-medium"
+              required
+            ></textarea>
+            <button type="submit" className="bg-emerald-600 text-white px-12 py-4 rounded-2xl font-black text-lg hover:bg-emerald-700 shadow-xl transition-all">
+              פרסם מחקר עכשיו
+            </button>
+          </form>
         </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
-          <div className="text-slate-500 text-sm mb-1">מאמרים שפורסמו</div>
-          <div className="text-3xl font-bold text-emerald-600">42</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center">
-          <div className="text-slate-500 text-sm mb-1">פוסטים בפורום</div>
-          <div className="text-3xl font-bold text-blue-600">856</div>
-        </div>
-        <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 text-center border-red-100 bg-red-50">
-          <div className="text-red-500 text-sm mb-1">דיווחים פתוחים</div>
-          <div className="text-3xl font-bold text-red-600">3</div>
-        </div>
-      </div>
+      )}
 
-      <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-          <h2 className="font-bold text-slate-800 text-lg">תכנים אחרונים</h2>
-          <div className="flex gap-2">
-            <input type="text" placeholder="חיפוש תוכן..." className="text-sm px-4 py-2 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-          </div>
+      {/* Forum Moderation */}
+      <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
+        <div className="p-8 border-b border-slate-50 bg-slate-50/50">
+          <h2 className="font-black text-slate-800 text-xl">ניהול פוסטים בפורום</h2>
         </div>
-        <div className="overflow-x-auto">
-          <table className="w-full text-right border-collapse">
-            <thead>
-              <tr className="bg-slate-50 text-slate-500 text-sm uppercase">
-                <th className="px-6 py-4 font-medium">כותרת</th>
-                <th className="px-6 py-4 font-medium">סוג</th>
-                <th className="px-6 py-4 font-medium">כותב</th>
-                <th className="px-6 py-4 font-medium">תאריך</th>
-                <th className="px-6 py-4 font-medium">סטטוס</th>
-                <th className="px-6 py-4 font-medium text-left">פעולות</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-100 text-sm">
-              {items.map((item) => (
-                <tr key={item.id} className="hover:bg-slate-50 transition-colors">
-                  <td className="px-6 py-4 font-bold text-slate-800">{item.title}</td>
-                  <td className="px-6 py-4">
-                    <span className={`px-2 py-1 rounded-md text-xs font-medium ${
-                      item.type === 'article' ? 'bg-blue-50 text-blue-600' : 
-                      item.type === 'research' ? 'bg-purple-50 text-purple-600' : 'bg-slate-100 text-slate-600'
-                    }`}>
-                      {item.type === 'article' ? 'מאמר' : item.type === 'research' ? 'מחקר' : 'פורום'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-slate-600">{item.author}</td>
-                  <td className="px-6 py-4 text-slate-500">{item.date}</td>
-                  <td className="px-6 py-4">
-                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                      item.status === 'published' ? 'bg-emerald-100 text-emerald-800' : 
-                      item.status === 'draft' ? 'bg-amber-100 text-amber-800' : 'bg-red-100 text-red-800'
-                    }`}>
-                      {item.status === 'published' ? 'פורסם' : item.status === 'draft' ? 'טיוטה' : 'דווח'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4 text-left">
-                    <button className="text-emerald-600 hover:text-emerald-800 ml-3">עריכה</button>
-                    <button className="text-red-600 hover:text-red-800">מחיקה</button>
-                  </td>
+        
+        {isLoading ? (
+          <div className="p-20 text-center animate-pulse font-bold text-slate-400">טוען נתונים...</div>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-right">
+              <thead className="bg-slate-50 text-slate-400 text-xs font-black uppercase tracking-widest">
+                <tr>
+                  <th className="px-8 py-4">הודעה</th>
+                  <th className="px-8 py-4">כותב</th>
+                  <th className="px-8 py-4">סטטוס</th>
+                  <th className="px-8 py-4 text-left">פעולות</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {posts.length === 0 ? (
+                  <tr><td colSpan={4} className="p-10 text-center text-slate-400 font-bold">אין פוסטים לניהול</td></tr>
+                ) : (
+                  posts.map(post => (
+                    <tr key={post.id} className="hover:bg-slate-50/50 transition-colors">
+                      <td className="px-8 py-6">
+                        <div className="font-black text-slate-800 mb-1">{post.title}</div>
+                        <div className="text-sm text-slate-500 truncate max-w-xs">{post.content}</div>
+                      </td>
+                      <td className="px-8 py-6 font-bold text-slate-600">{post.author}</td>
+                      <td className="px-8 py-6">
+                        <span className={`px-3 py-1 rounded-full text-[10px] font-black uppercase ${
+                          post.status === 'pending' ? 'bg-amber-100 text-amber-600' : 'bg-emerald-100 text-emerald-600'
+                        }`}>
+                          {post.status === 'pending' ? 'ממתין' : 'מאושר'}
+                        </span>
+                      </td>
+                      <td className="px-8 py-6 text-left space-x-reverse space-x-2">
+                        {post.status === 'pending' && (
+                          <button 
+                            onClick={() => handleApprove(post.id)}
+                            className="bg-emerald-50 text-emerald-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-emerald-600 hover:text-white transition-all"
+                          >
+                            אשר פוסט
+                          </button>
+                        )}
+                        <button 
+                          onClick={() => handleDelete(post.id)}
+                          className="bg-red-50 text-red-600 px-4 py-2 rounded-xl text-xs font-black hover:bg-red-600 hover:text-white transition-all"
+                        >
+                          מחק
+                        </button>
+                      </td>
+                    </tr>
+                  ))
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
       </div>
     </div>
   );
