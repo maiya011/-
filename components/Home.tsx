@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 
 interface Props {
   onNavigate: (page: any) => void;
@@ -100,6 +100,14 @@ const SmokingCalculator: React.FC = () => {
 };
 
 export const Home: React.FC<Props> = ({ onNavigate }) => {
+  const [scrollY, setScrollY] = useState(0);
+
+  useEffect(() => {
+    const handleScroll = () => setScrollY(window.scrollY);
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const latestResearchHeadlines = [
     "ישראל היום: שינוי שיטת המיסוי על סיגריות עשוי להכניס למדינה עד מיליארד ש\"ח בשנה.",
     "סקירת קאן (The Khan Review): הצגת התוכנית להפיכת העישון למיושן באנגליה עד 2040.",
@@ -160,27 +168,28 @@ export const Home: React.FC<Props> = ({ onNavigate }) => {
 
       {/* Hero Section */}
       <section className="relative hero-gradient text-white pt-16 md:pt-24 pb-32 md:pb-44 px-4 overflow-hidden min-h-[70vh] md:min-h-[85vh] flex items-center">
-        <div className="absolute inset-0 z-0">
+        <div className="absolute inset-0 z-0 overflow-hidden">
           <img 
             src="https://images.unsplash.com/photo-1511895426328-dc8714191300?auto=format&fit=crop&q=80&w=2000" 
             alt="Family in nature" 
-            className="w-full h-full object-cover opacity-20 mix-blend-overlay"
+            className="w-full h-full object-cover opacity-20 mix-blend-overlay scale-110"
+            style={{ transform: `translateY(${scrollY * 0.3}px)` }}
           />
           <div className="absolute inset-0 bg-gradient-to-b from-sky-950/80 via-sky-900/40 to-sky-950/90"></div>
         </div>
 
-        <div className="max-w-6xl mx-auto text-center relative z-10 animate-fade-in-up px-2">
-          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full mb-6 md:mb-10 border border-white/20 shadow-xl">
+        <div className="max-w-6xl mx-auto text-center relative z-10 px-2">
+          <div className="inline-flex items-center gap-2 bg-white/10 backdrop-blur-md px-3 md:px-4 py-1.5 md:py-2 rounded-full mb-6 md:mb-10 border border-white/20 shadow-xl opacity-0 animate-fade-in-up">
             <span className="flex h-1.5 w-1.5 md:h-2 md:w-2 rounded-full bg-yellow-300 animate-pulse"></span>
             <span className="text-[8px] md:text-xs font-black text-sky-50 tracking-[0.1em] md:tracking-[0.2em] uppercase text-right">המרכז למידע והפחתת נזקי עישון</span>
           </div>
           
-          <h1 className="text-3xl md:text-6xl lg:text-8xl font-black mb-6 md:mb-10 leading-tight md:leading-[1.1] tracking-tight drop-shadow-2xl">
+          <h1 className="text-3xl md:text-6xl lg:text-8xl font-black mb-6 md:mb-10 leading-tight md:leading-[1.1] tracking-tight drop-shadow-2xl opacity-0 animate-fade-in-up delay-200">
             האמת על סיגריות:<br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-r from-sky-200 to-yellow-100">הידע שמציל חיים</span>
           </h1>
 
-          <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-white/20 shadow-2xl mt-8 md:mt-12 mb-10 md:mb-16 relative overflow-hidden group">
+          <div className="max-w-4xl mx-auto bg-white/10 backdrop-blur-2xl p-6 md:p-12 rounded-[2rem] md:rounded-[3.5rem] border border-white/20 shadow-2xl mt-8 md:mt-12 mb-10 md:mb-16 relative overflow-hidden group opacity-0 animate-fade-in-up delay-400">
             <p className="text-base md:text-3xl text-white leading-relaxed font-bold text-center">
               "הקמתי את המרכז הזה לאחר שאיבדתי את אבי לסרטן ריאות. המטרה שלי היא לוודא שאף משפחה לא תעבור את מה שאנחנו עברנו. בפורום הזה, תקבלו ידע ותקווה!"
             </p>
@@ -189,7 +198,7 @@ export const Home: React.FC<Props> = ({ onNavigate }) => {
             </div>
           </div>
           
-          <div className="flex flex-col sm:flex-row justify-center gap-4 px-4">
+          <div className="flex flex-col sm:flex-row justify-center gap-4 px-4 opacity-0 animate-fade-in-up delay-600">
             <button 
               onClick={() => onNavigate('forum')}
               className="bg-sky-600 hover:bg-sky-500 text-white px-8 md:px-12 py-4 md:py-5 rounded-xl md:rounded-2xl font-black text-lg md:text-xl transition-all shadow-xl active:scale-95 flex items-center justify-center gap-3"
