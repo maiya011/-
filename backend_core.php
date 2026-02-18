@@ -18,11 +18,10 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 function getDB() {
-    // פרטי התחברות - וודא שהם תואמים ב-100% למה שמופיע ב-Hostinger hPanel
     $host = 'localhost'; 
     $db   = 'u371052356_ffs'; 
     $user = 'u371052356_ffs';       
-    $pass = 'xxnv Maya))((**1';    
+    $pass = 'Maiyan))((**1';    
     $charset = 'utf8mb4';
 
     $dsn = "mysql:host=$host;dbname=$db;charset=$charset";
@@ -39,7 +38,7 @@ function getDB() {
             'error' => 'Database connection failed',
             'details' => $e->getMessage(),
             'server_user' => $user,
-            'hint' => 'Check if password is correct and if user is assigned to the DB in Hostinger Panel.'
+            'hint' => 'אם הסיסמה הוחלפה ב-hPanel, וודא שהיא הועתקה נכון ללא רווחים.'
         ]);
         exit;
     }
